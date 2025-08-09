@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-#Constante Gravedad
+#Constante Gravitacional
 G = 6.67430e-11
 
 class Cuerpo:

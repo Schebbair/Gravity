@@ -79,7 +79,7 @@ factor_velocidad = 1.5
 
 cuerpos = [Cuerpo(masa_sol, [0, 0], [0, 0])]
 
-# Agregar planetas interiores con velocidad perpendicular a la posición
+# Agregar planetas interiores con velocidad perpendicular a posición
 for nombre, (masa, dist, vel) in datos_planetas.items():
     posicion = np.array([dist, 0])
     vector_velocidad = np.array([0, vel * factor_velocidad])
