@@ -2,69 +2,103 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-#Constante Gravedad
-G = 6.67430e-11
+pos_escala = 1e6   # 1 unidad = 1 millón km
+masa_escala = 1e24 # masas en 10^24 kg
+
+# Datos planetas (masa, distancia, velocidad)
+datos_planetas = {
+    "Mercurio": (0.330, 57.9, 47.87),
+    "Venus":    (4.87, 108.2, 35.02),
+    "Tierra":   (5.97, 149.6, 29.78),
+    "Marte":    (0.642, 227.9, 24.077)
+}
+
+#en 10^24 kg
+masa_sol = 1989e30 / masa_escala
+
+# Calcula G efectivo basado en la Tierra
+masa_tierra = datos_planetas["Tierra"][0]
+dist_tierra = datos_planetas["Tierra"][1]
+vel_tierra = datos_planetas["Tierra"][2]
+G = (vel_tierra**2.3 * dist_tierra) / masa_sol
+
 
 class Cuerpo:
     def __init__(self, masa, posicion, velocidad):
         self.masa = masa
         self.posicion = np.array(posicion, dtype=float)
         self.velocidad = np.array(velocidad, dtype=float)
-        self.fuerza = np.zeros(2, dtype=float)
 
+def calcular_aceleraciones(cuerpos):
+    n = len(cuerpos)
+    aceleraciones = [np.zeros(2) for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                diferencia = cuerpos[j].posicion - cuerpos[i].posicion
+                distancia = np.linalg.norm(diferencia)
+                if dist > 1e-5:
+                    direccion_fuerza = diferencia / distancia
+                    aceleraciones[i] += G * cuerpos[j].masa / distancia**2 * direccion_fuerza
+    return aceleraciones
 
-#Función para calcular la fuerza gravitatoria que ejercen entre sí dos cuerpos
-def calcular_fuerza(c1,c2):
-    vector_distancia = c2.posicion-c1.posicion
-    distancia = np.linalg.norm(vector_distancia)
-    if distancia == 0:
-        return np.zeros(2)
-    magnitud_fuerza = G * c1.masa * c2.masa / distancia**2
-    vector_fuerza = magnitud_fuerza * (vector_distancia/distancia)
-    return vector_fuerza
+def rk4_paso(cuerpos, dt):
+    n = len(cuerpos)
+    posicion = np.array([c.posicion for c in cuerpos])
+    velocidad = np.array([c.velocidad for c in cuerpos])
+    masas = np.array([c.masa for c in cuerpos])
 
-#Función para actualizar velocidad y posición
-def actualizar (cuerpos, dt):
-    #primero reiniciar la fuerza
-    for c in cuerpos:
-        c.fuerza[:] = 0
-    
-    #calcular fuerza
-    for i in range(len(cuerpos)):
-        for j in range(i+1, len(cuerpos)):
-            f = calcular_fuerza(cuerpos[i], cuerpos[j])
-            cuerpos[i].fuerza += f
-            cuerpos[j].fuerza -= f
-    
-    #actualizar velocidad y posición
-    for c in cuerpos:
-        aceleracion = c.fuerza / c.masa
-        c.velocidad += aceleracion * dt
-        c.posicion += c.velocidad * dt
+    def derivadas(posiciones, velocidades):
+        temp_cuerpos = [Cuerpo(masas[i], posiciones[i], velocidades[i]) for i in range(n)]
+        return np.array(calcular_aceleraciones(temp_cuerpos))
 
+    a1 = derivadas(posicion, velocidad)
+    k1_posicion = velocidad
+    k1_velocidad = a1
 
-#-----------------------------------------------------------------------------------------------------
+    a2 = derivadas(posicion + 0.5 * dt * k1_posicion, velocidad + 0.5 * dt * k1_velocidad)
+    k2_posicion = velocidad + 0.5 * dt * k1_velocidad
+    k2_velocidad = a2
 
-c1 = Cuerpo(10000000000000000, [0,0], [0,0]) #cuerpo central
+    a3 = derivadas(posicion + 0.5 * dt * k2_posicion, velocidad + 0.5 * dt * k2_velocidad)
+    k3_posicion = velocidad + 0.5 * dt * k2_velocidad
+    k3_velocidad = a3
 
-#cuerpo orbitante
-c2 = Cuerpo(10, [50,0], [0,np.sqrt(G * c1.masa / 50)]) #la velocidad ha de ser perpendicular a r
-c3 = Cuerpo(1000, [80,0], [0, np.sqrt(G * c1.masa / 80)])
-c4 = Cuerpo(1000000000, [100,0], [0, np.sqrt(G * c1.masa / 100)])
+    a4 = derivadas(posicion + dt * k3_posicion, velocidad + dt * k3_velocidad)
+    k4_posicion = velocidad + dt * k3_velocidad
+    k4_velocidad = a4
 
-dt = 0.1 # paso del tiempo
-fig, ax = plt.subplots()
-ax.set_xlim(-100, 100)
-ax.set_ylim(-100, 100)
-scat = ax.scatter([], [])
-cuerpos = [c1,c2,c3,c4]
+    posicion += (dt / 6) * (k1_posicion + 2*k2_posicion + 2*k3_posicion + k4_posicion)
+    velocidad += (dt / 6) * (k1_velocidad + 2*k2_velocidad + 2*k3_velocidad + k4_velocidad)
 
-#Función para animación
+    for i in range(n):
+        cuerpos[i].posicion = posicion[i]
+        cuerpos[i].velocidad = velocidad[i]
+
+factor_velocidad = 1.5
+
+cuerpos = [Cuerpo(masa_sol, [0, 0], [0, 0])]
+
+# Agregar planetas interiores con velocidad perpendicular a la posición
+for nombre, (masa, dist, vel) in datos_planetas.items():
+    posicion = np.array([dist, 0])
+    vector_velocidad = np.array([0, vel * factor_velocidad])
+    cuerpos.append(Cuerpo(masa, posicion, vector_velocidad))
+
+dt = 0.01
+
+fig, ax = plt.subplots(figsize=(8,8))
+ax.set_xlim(-300, 300)
+ax.set_ylim(-300, 300)
+ax.set_aspect('equal')
+puntos, = ax.plot([], [], 'o')
+
 def animar(frame):
-    actualizar(cuerpos, dt)
-    posiciones = [c.posicion for c in cuerpos]
-    scat.set_offsets(posiciones)
-    return [scat]
+    rk4_paso(cuerpos, dt)
+    x = [c.posicion[0] for c in cuerpos]
+    y = [c.posicion[1] for c in cuerpos]
+    puntos.set_data(x, y)
+    return puntos,
 
-ani = FuncAnimation(fig, animar, frames = 600, interval = 20, blit = True)
+ani = FuncAnimation(fig, animar, frames=2000, interval=20, blit=True)
 plt.show()
