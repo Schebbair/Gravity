@@ -1,6 +1,36 @@
-# Simulador de Gravedad — Proyecto Inicial
+# Simulador de Gravedad
 
-Este proyecto es un simulador básico de gravedad con cuerpos orbitando bajo la influencia gravitacional mutua. Está pensado para aprender y mejorar habilidades en programación, matemáticas y física.
+Este proyecto es un simulador básico de gravedad con cuerpos orbitando bajo la influencia gravitacional mutua. Está pensado para aprender y mejorar habilidades en programación, matemáticas y física. Hecho tanto en Python como en C++.
+
+## Requisitos
+
+### Python
+- Python 3.x
+- Numpy
+- Matplotlib
+
+### C++
+- CMake >= 3.20
+- GCC/C++
+- GLFW, GLAD
+
+## Ejecutar
+
+### Python
+1. Clonar el repositorio
+2. Ejecutar la versión básica con Euler.
+3. Ejecutar la versión avanzada con Runge-Kutta.
+4. Visualizar la simulación animada.
+
+### C++
+1. Clonar el repositorio
+2. cd simulacion_c++
+3. mkdir build
+4. cd build
+5. cmake ..
+6. make
+7. ./simulador | ./simulador_verlet
+
 
 ---
 
@@ -62,24 +92,32 @@ Esta implementación mejora la estabilidad y realismo de las órbitas, incluyend
 
 ---
 
+## Fase 3: Mejora con método Verlet (C++)
+
+### Teoría del método Verlet
+
+El método de Verlet es un esquema numérico utilizado para integrar ecuaciones de movimiento en mecánica clásica. Es especialmente útil en sistemas donde las fuerzas dependen de la posición (como la gravedad) y se desea conservar energía de manera precisa a largo plazo.
+
+### Idea del método
+
+El método Verlet calcula la nueva posición usando la posición actual y la posición anterior:
+
+$$
+\vec{r}(t+\Delta t) = 2 \vec{r}(t) - \vec{r}(t-\Delta t) + \vec{a}(t) \Delta t^2
+$$
+
+- La nueva posición depende solo de las posiciones y la aceleración.
+- Es simétrico en el tiempo, lo que ayuda a conservar la energía del sistema.
+
+### Ventajas
+- Más estable que el método de Euler simple.
+- Conserva la energía a largo plazo en sistemas cerrados.
+- Muy usado en simulaciones de órbitas planetarias y dinámica molecular.
+
+
+---
+
 ## Próximos pasos futuros
 
-- Implementar el simulador en **C++** para mejorar el rendimiento computacional y poder manejar más cuerpos y simulaciones más largas.
-- Incorporar técnicas de **renderizado gráfico** (OpenGL) para visualizaciones avanzadas y en tiempo real.
 - Evolucionar el simulador hacia objetos con campos gravitacionales extremos, como **agujeros negros**, explorando conceptos de relatividad general.
-
----
-
-## Requisitos
-
-- Librerías: `numpy`, `matplotlib`
-
----
-
-## Cómo ejecutar
-
-1. Clonar el repositorio.
-2. Ejecutar la versión básica con Euler.
-3. Ejecutar la versión avanzada con Runge-Kutta.
-4. Visualizar la simulación animada.
 
