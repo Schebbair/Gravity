@@ -67,7 +67,7 @@ Donde \$\vec{a}_t\$ es la aceleración calculada en el tiempo \$t\$, \$\vec{v}\$
 - **Ventajas:** Fácil de implementar, computacionalmente barato.
 - **Desventajas:** Poco preciso, puede generar errores acumulativos grandes y movimientos no realistas en simulaciones prolongadas.
 
-En esta fase se usé este método para entender la dinámica básica y la estructura del código.
+En esta fase usé este método para entender la dinámica básica y la estructura del código.
 
 ---
 
